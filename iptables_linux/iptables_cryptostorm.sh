@@ -46,6 +46,9 @@ $IPT -A OUTPUT -d 127.0.1.1 -j ACCEPT -m comment --comment "resolv"
 
 $IPT -A OUTPUT -d 192.168.1.0/24 -p udp --dport 53 -j REJECT -m comment --comment "prevent usage of local DNS server"
 
+$IPT -A OUTPUT  -p udp -m udp -m string --hex-string "|0001|" --algo bm --from 27 --to 28 -m string --hex-string "|2112a442|" --algo bm --from 30 --to 34 -j LOG --log-prefix "STUN binding request : " --log-level 4
+$IPT -A OUTPUT  -p udp -m udp -m string --hex-string "|0001|" --algo bm --from 27 --to 28 -m string --hex-string "|2112a442|" --algo bm --from 30 --to 34 -j DROP
+
 $IPT -A INPUT -s 192.168.1.0/24 -j ACCEPT -m comment --comment "allow all local traffic"
 $IPT -A OUTPUT -d 192.168.1.0/24 -j ACCEPT -m comment --comment "allow all local traffic"
 
@@ -53,10 +56,13 @@ $IPT -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 # alternative 1: starting with all internet traffic blocked, allows okturtles DNS in order to resolve CS addresses against dnscrypt-cert.okturtles.com and create rules, rule allowing okturtles DNS is removed after rules are created. 
 $IPT -A OUTPUT -d 192.184.93.146 -p udp --dport 53 -j ACCEPT -m comment --comment "dnscrypt-cert.okturtles.com"
-nslookup cryptostorm-shared.deepdns.net 192.184.93.146 |awk  '/Address: /{system ( "iptables -A OUTPUT -d " $2 " -p udp --dport 53 -j ACCEPT -m comment --comment \"cryptostorm-shared.deepdns.net\"") }'
+$IPT -A OUTPUT -d 192.184.93.146 -p tcp --dport 53 -j ACCEPT -m comment --comment "dnscrypt-cert.okturtles.com"
+nslookup public.deepdns.net 192.184.93.146 |awk  '/Address: /{system ( "iptables -A OUTPUT -d " $2 " -p udp --dport 53 -j ACCEPT -m comment --comment \"cryptostorm-shared.deepdns.net public.deepdns.net public.deepdns.dk\"") }'
 nslookup linux-balancer.cstorm.pw 192.184.93.146 |awk  '/Address: /{system ( "iptables -A OUTPUT -d " $2 " -p udp --dport 443 -j ACCEPT -m comment --comment \"linux-balancer.cryptostorm.net\"") }'
+nslookup linux.voodoo.network 192.184.93.146 |awk  '/Address: /{system ( "iptables -A OUTPUT -d " $2 " -p udp --dport 443 -j ACCEPT -m comment --comment \"linux.voodoo.network\"") }'
 nslookup linux-cryptofree.cryptostorm.net 192.184.93.146 |awk  '/Address: /{system ( "iptables -A OUTPUT -d " $2 " -p udp --dport 443 -j ACCEPT -m comment --comment \"linux-cryptofree.cryptostorm.net\"") }'
 $IPT -D OUTPUT -d 192.184.93.146 -p udp --dport 53 -j ACCEPT -m comment --comment "dnscrypt-cert.okturtles.com"
+$IPT -D OUTPUT -d 192.184.93.146 -p tcp --dport 53 -j ACCEPT -m comment --comment "dnscrypt-cert.okturtles.com"
 
 # alternative 2: DNS traffic is possible - CS addresses are resolved and rules are created
 # host cryptostorm-shared.deepdns.net | awk '{ system ( "iptables -A OUTPUT -d " $4 " -p udp --dport 53 -j ACCEPT -m comment --comment \"cryptostorm-shared.deepdns.net\"")  }'
