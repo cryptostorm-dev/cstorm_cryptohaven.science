@@ -44,7 +44,7 @@ $IPT -A OUTPUT -o lo -j ACCEPT -m comment --comment "Allow loopback device"
 $IPT -A INPUT -s 127.0.1.1 -j ACCEPT -m comment --comment "resolv"
 $IPT -A OUTPUT -d 127.0.1.1 -j ACCEPT -m comment --comment "resolv"
 
-$IPT -A OUTPUT -d 192.168.1.0/24 -p udp --dport 53 -j REJECT -m comment --comment "prevent usage of local DNS server"
+$IPT -A OUTPUT -d 192.168.0.0/16 -p udp --dport 53 -j REJECT -m comment --comment "prevent usage of local DNS server"
 
 $IPT -A INPUT -s 192.168.1.0/24 -j ACCEPT -m comment --comment "allow all local traffic"
 $IPT -A OUTPUT -d 192.168.1.0/24 -j ACCEPT -m comment --comment "allow all local traffic"
